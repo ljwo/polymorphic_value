@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Reference stability</title>
+<link rel="stylesheet" href="../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<link rel="home" href="../../../index.html" title="Chapter&#160;1.&#160;Boost.PolymorphicValue (Proposed)">
+<link rel="up" href="../design_overview.html" title="Design Overview">
+<link rel="prev" href="default_construction_and_a_null_state.html" title="Default construction and a null state">
+<link rel="next" href="../type_requirements.html" title="Type Requirements">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="spirit-nav">
+<a accesskey="p" href="default_construction_and_a_null_state.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../design_overview.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../type_requirements.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="boost_polymorphicvalue__proposed_.tutorial.design_overview.reference_stability"></a><a class="link" href="reference_stability.html" title="Reference stability">Reference
+        stability</a>
+</h4></div></div></div>
+<p>
+          <code class="computeroutput"><span class="identifier">polymorphic_value</span></code> makes
+          no guarantees of the stability of pointers and references obtained from
+          <code class="computeroutput"><span class="keyword">operator</span><span class="special">-&gt;</span></code>
+          and <code class="computeroutput"><span class="keyword">operator</span><span class="special">*</span></code>.
+          <code class="computeroutput"><span class="identifier">polymorphic_value</span></code> models
+          a value-type like optional or variant and may make use of a small object
+          optimization to avoid heap allocation for small objects. Such an optimisation
+          would render pointers and references to a managed object invalid after
+          a move operation. The result of <code class="computeroutput"><span class="keyword">operator</span><span class="special">-&gt;</span></code> and <code class="computeroutput"><span class="keyword">operator</span><span class="special">*</span></code> should be used directly, not cached for
+          later use.
+        </p>
+<pre class="programlisting"><span class="comment">// recommended use</span>
+<span class="identifier">polymorphic_value</span><span class="special">&lt;</span><span class="identifier">Shape</span><span class="special">&gt;</span> <span class="identifier">pv</span><span class="special">(</span><span class="identifier">Circle</span><span class="special">(</span><span class="number">8</span><span class="special">));</span>
+<span class="identifier">foo</span><span class="special">(*</span><span class="identifier">pv</span><span class="special">);</span>
+<span class="keyword">double</span> <span class="identifier">area</span> <span class="special">=</span> <span class="identifier">pv</span><span class="special">-&gt;</span><span class="identifier">Area</span><span class="special">();</span>
+
+<span class="comment">// mis-use (pointer stability not guaranteed)</span>
+<span class="identifier">polymorphic_value</span><span class="special">&lt;</span><span class="identifier">Shape</span><span class="special">&gt;</span> <span class="identifier">pv</span><span class="special">(</span><span class="identifier">Circle</span><span class="special">(</span><span class="number">8</span><span class="special">));</span>
+<span class="identifier">Shape</span><span class="special">*</span> <span class="identifier">s</span> <span class="special">=</span> <span class="identifier">pv</span><span class="special">.</span><span class="keyword">operator</span><span class="special">-&gt;();</span>
+<span class="identifier">foo</span><span class="special">(*</span><span class="identifier">pv</span><span class="special">);</span>
+<span class="keyword">double</span> <span class="identifier">area</span> <span class="special">=</span> <span class="identifier">s</span><span class="special">-&gt;</span><span class="identifier">Area</span><span class="special">();</span>
+</pre>
+<p>
+          The unnatural looking code that one is required to write to cache a pointer
+          to a <code class="computeroutput"><span class="identifier">polymorphic_value</span></code>'s
+          managed object should be a suitable deterrent.
+        </p>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"></td>
+<td align="right"><div class="copyright-footer">Copyright &#169; 2017 Jonathan Coe<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></td>
+</tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="default_construction_and_a_null_state.html"><img src="../../../images/prev.png" alt="Prev"></a><a accesskey="u" href="../design_overview.html"><img src="../../../images/up.png" alt="Up"></a><a accesskey="h" href="../../../index.html"><img src="../../../images/home.png" alt="Home"></a><a accesskey="n" href="../type_requirements.html"><img src="../../../images/next.png" alt="Next"></a>
+</div>
+</body>
+</html>
