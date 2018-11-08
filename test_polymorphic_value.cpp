@@ -791,8 +791,79 @@ TEST_CASE("Dangling reference in forwarding constructor", "[polymorphic_value.co
   auto d = DerivedType(7);
   auto& rd = d;
   polymorphic_value<DerivedType> p(rd);
-  
+
   d.set_value(6);
   CHECK(p->value() == 7);
 }
 
+struct NonHashableBase
+{
+};
+
+struct HashableDerivedA : NonHashableBase
+{
+  int x_=0;
+  HashableDerivedA(int x) : x_(x) {}
+};
+bool operator==(const HashableDerivedA& lhs, const HashableDerivedA& rhs)
+{
+  return lhs.x_ == rhs.x_;
+}
+
+struct HashableDerivedB : NonHashableBase
+{
+  int x_=0;
+  HashableDerivedB(int x) : x_(x) {}
+};
+bool operator==(const HashableDerivedB& lhs, const HashableDerivedB& rhs)
+{
+  return lhs.x_ == rhs.x_;
+}
+
+struct NonHashableDerived : NonHashableBase
+{
+  int x_=0;
+  NonHashableDerived(int x) : x_(x) {}
+};
+
+
+namespace std
+{
+  template<>
+  struct hash<HashableDerivedA>
+  {
+      std::size_t operator()(const HashableDerivedA& a) {return std::hash<int>()(a.x_);}
+  };
+  template<>
+  struct hash<HashableDerivedB>
+  {
+      std::size_t operator()(const HashableDerivedB& a) {return std::hash<int>()(a.x_);}
+  };
+}
+
+TEST_CASE("Hashing sort of works", "[polymorphic_value.hasing]")
+{
+  polymorphic_value<NonHashableBase, detail::Hashable> pb;
+  polymorphic_value pda(std::in_place_type<HashableDerivedA>, std::in_place_type<detail::Hashable>, 17);
+  pb = polymorphic_value<NonHashableBase, detail::Hashable>(pda);
+  //polymorphic_value pdn(std::in_place_type<NonHashableDerived>, std::in_place_type<detail::Hashable>, 666);
+  polymorphic_value pdn(std::in_place_type<NonHashableDerived>, std::in_place_type<detail::Nothing>, 666);
+
+  std::hash<polymorphic_value<NonHashableBase, detail::Hashable>>()(pb);
+  //std::hash<polymorphic_value<NonHashableDerived, detail::Nothing>>()(pdn);
+  polymorphic_value pda2(std::in_place_type<HashableDerivedA>, std::in_place_type<detail::Hashable>, 17);
+  polymorphic_value<NonHashableBase, detail::Hashable> pb2;
+  pb2 = polymorphic_value<NonHashableBase, detail::Hashable>(pda2);
+  polymorphic_value pda3(std::in_place_type<HashableDerivedA>, std::in_place_type<detail::Hashable>, 666);
+  polymorphic_value<NonHashableBase, detail::Hashable> pb3;
+  pb3 = polymorphic_value<NonHashableBase, detail::Hashable>(pda3);
+  polymorphic_value pdb(std::in_place_type<HashableDerivedB>, std::in_place_type<detail::Hashable>, 17);
+  polymorphic_value<NonHashableBase, detail::Hashable> pb4;
+  pb4 = polymorphic_value<NonHashableBase, detail::Hashable>(pdb);
+  REQUIRE(pda == pda2);
+  REQUIRE(pda2 == pda);
+  REQUIRE(pda != pda3);
+  REQUIRE(pda3 != pda);
+  //REQUIRE(pda != pdb);
+  REQUIRE(pb != pb4);
+}
